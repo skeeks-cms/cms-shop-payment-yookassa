@@ -1,5 +1,5 @@
 {
-	"name": "skeeks/cms-shop-payment-yookassa",
+	"name": "skeeks/cms-shop-paysystem-yookassa",
 	"description": "Способ оплаты ЮKassa для SkeekS CMS",
 	"keywords": ["yii", "skeeks", "framework", "component"],
     "homepage": "https://cms.skeeks.com/",

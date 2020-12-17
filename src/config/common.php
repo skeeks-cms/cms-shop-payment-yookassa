@@ -2,8 +2,8 @@
 return [
     'components' => [
         'shop' => [
-            'deliveryHandlers'             => [
-                \skeeks\cms\shop\boxberry\BoxberryDeliveryHandler::class
+            'paysystemHandlers'             => [
+                \skeeks\cms\shop\yookassa\YookassaPaysystemHandler::class
             ]
         ],
     ],
