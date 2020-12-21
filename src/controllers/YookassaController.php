@@ -8,6 +8,7 @@
 
 namespace skeeks\cms\shop\yookassa\controllers;
 
+use skeeks\cms\shop\models\ShopBill;
 use skeeks\cms\shop\models\ShopPayment;
 use yii\base\Exception;
 use yii\helpers\ArrayHelper;
@@ -51,22 +52,23 @@ class YookassaController extends Controller
         $status = ArrayHelper::getValue($data, "object.status");
 
         /**
-         * @var ShopPayment $shopPayment
+         * todo:учесть мультисайтовость
+         * @var ShopBill $shopBill
          */
-        $shopPayment = ShopPayment::find()->andWhere(['external_id' => $paymentId])->one();
-        \Yii::info("Оплата: ".print_r($shopPayment->id, true), self::class);
+        $shopBill = ShopBill::find()->andWhere(['external_id' => $paymentId])->one();
+        \Yii::info("Оплата: ".print_r($shopBill->id, true), self::class);
         
-        if (!$shopPayment) {
+        if (!$shopBill) {
             throw new Exception("Не найден платеж на сайте");
         }
 
         /*
          * @var $yooKassa \skeeks\cms\shop\paySystems\YandexKassaPaySystem
          */
-        $yooKassa = $shopPayment->shopPaySystem->handler;
+        $yooKassa = $shopBill->shopPaySystem->handler;
 
-        if ($shopPayment->paid_at) {
-            \Yii::info("Платеж: ".$shopPayment->id." уже оплаечен", self::class);
+        if ($shopBill->paid_at) {
+            \Yii::info("Платеж: ".$shopBill->id." уже оплаечен", self::class);
             return "Ok";
         }
 
@@ -84,7 +86,7 @@ class YookassaController extends Controller
 
         if ($payment->status == "waiting_for_capture") {
 
-            $money = $shopPayment->money->convertToCurrency("RUB");
+            $money = $shopBill->money->convertToCurrency("RUB");
 
             $idempotenceKey = uniqid('', true);
             $response = $client->capturePayment(
@@ -106,14 +108,30 @@ class YookassaController extends Controller
             $transaction = \Yii::$app->db->beginTransaction();
 
             try {
-                $shopPayment->paid_at = time();
+                $shopPayment = new ShopPayment();
+                $shopPayment->amount = $shopBill->amount;
+                $shopPayment->currency_code = $shopBill->currency_code;
+                $shopPayment->shop_pay_system_id = $shopBill->shop_pay_system_id;
+                $shopPayment->shop_buyer_id = $shopBill->shop_buyer_id;
+                $shopPayment->shop_order_id = $shopBill->shop_order_id;
+                $shopPayment->external_id = $shopBill->external_id;
+                $shopPayment->external_data = $shopBill->external_data;
+                $shopPayment->external_name = $shopBill->external_name;
+                $shopPayment->comment = $shopBill->description;
 
                 if (!$shopPayment->save()) {
                     throw new Exception("Не сохранился платеж: " . print_r($shopPayment->errors, true));
                 }
 
-                $shopPayment->shopOrder->paid_at = time();
-                $shopPayment->shopOrder->save();
+                $shopBill->shop_payment_id = $shopPayment->id;
+                $shopBill->paid_at = time();
+
+                if (!$shopBill->save()) {
+                    throw new Exception("Не сохранился счет: " . print_r($shopBill->errors, true));
+                }
+
+                $shopBill->shopOrder->paid_at = time();
+                $shopBill->shopOrder->save();
 
                 $transaction->commit();
             } catch (\Exception $e) {

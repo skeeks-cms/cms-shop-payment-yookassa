@@ -9,6 +9,7 @@
 namespace skeeks\cms\shop\yookassa;
 
 use skeeks\cms\helpers\StringHelper;
+use skeeks\cms\shop\models\ShopOrder;
 use skeeks\cms\shop\models\ShopPayment;
 use skeeks\cms\shop\paysystem\PaysystemHandler;
 use skeeks\yii2\form\fields\BoolField;
@@ -107,18 +108,19 @@ class YookassaPaysystemHandler extends PaysystemHandler
      * @param ShopPayment $shopPayment
      * @return \yii\console\Response|\yii\web\Response
      */
-    public function actionPay(ShopPayment $shopPayment)
+    public function actionPayOrder(ShopOrder $shopOrder)
     {
-        $model = $shopPayment;
+        $model = $this->getShopBill($shopOrder);
+
         $yooKassa = $model->shopPaySystem->handler;
         $money = $model->money->convertToCurrency("RUB");
-        $returnUrl = $model->shopOrder->getUrl([], true);
+        $returnUrl = $shopOrder->getUrl([], true);
 
         /**
          * Для чеков нужно указывать информацию о товарах
          * https://yookassa.ru/developers/api?lang=php#create_payment
          */
-        $shopBuyer = $model->shopOrder->shopBuyer;
+        $shopBuyer = $shopOrder->shopBuyer;
         $receipt = [];
         if ($yooKassa->is_receipt) {
             if (trim($shopBuyer->email)) {
@@ -128,7 +130,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
                 ];
             }
 
-            foreach ($model->shopOrder->shopOrderItems as $shopOrderItem) {
+            foreach ($shopOrder->shopOrderItems as $shopOrderItem) {
                 $itemData = [];
 
                 $itemData['description'] = StringHelper::substr($shopOrderItem->name, 0, 128);
@@ -145,13 +147,13 @@ class YookassaPaysystemHandler extends PaysystemHandler
             /**
              * Стоимость доставки так же нужно добавить
              */
-            if ((float)$model->shopOrder->moneyDelivery->amount > 0) {
+            if ((float)$shopOrder->moneyDelivery->amount > 0) {
                 $itemData = [];
-                $itemData['description'] = StringHelper::substr($model->shopOrder->shopDelivery->name, 0, 128);
+                $itemData['description'] = StringHelper::substr($shopOrder->shopDelivery->name, 0, 128);
                 $itemData['quantity'] = 1;
                 $itemData['vat_code'] = 1; //todo: доработать этот момент
                 $itemData['amount'] = [
-                    'value'    => $model->shopOrder->moneyDelivery->amount,
+                    'value'    => $shopOrder->moneyDelivery->amount,
                     'currency' => 'RUB',
                 ];
 
@@ -208,7 +210,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
                 'type'       => 'redirect',
                 'return_url' => $returnUrl,
             ],
-            'description'  => 'Заказ №'.$model->shop_order_id,
+            'description'  => 'Заказ №' . $shopOrder->id,
         ],
             uniqid('', true)
         );
