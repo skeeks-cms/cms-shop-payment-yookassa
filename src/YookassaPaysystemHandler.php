@@ -162,7 +162,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
 
             $totalCalcAmount = 0;
             foreach ($receipt['items'] as $itemData) {
-                $totalCalcAmount = $totalCalcAmount + $itemData['amount']['value'];
+                $totalCalcAmount = $totalCalcAmount + ($itemData['amount']['value'] * $itemData['quantity']);
             }
 
             $discount = 0;
