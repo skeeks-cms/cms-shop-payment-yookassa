@@ -16,7 +16,7 @@
 	],
 	"require": {
 	  	"skeeks/cms-shop": "^2.3 || dev-master",
-        "yoomoney/yookassa-sdk-php": "^2.0"
+        "yoomoney/yookassa-sdk-php": "^2.4"
 	},
     "autoload": {
         "psr-4": {
