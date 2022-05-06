@@ -206,6 +206,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
                 'value'    => $money->amount,
                 'currency' => 'RUB',
             ],
+            'capture' => true,
             'confirmation' => [
                 'type'       => 'redirect',
                 'return_url' => $returnUrl,
