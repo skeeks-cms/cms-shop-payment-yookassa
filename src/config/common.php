@@ -3,7 +3,9 @@ return [
     'components' => [
         'shop' => [
             'paysystemHandlers' => [
-                \skeeks\cms\shop\yookassa\YookassaPaysystemHandler::class,
+                'yookassa' => [
+                    'class' => \skeeks\cms\shop\yookassa\YookassaPaysystemHandler::class,
+                ],
             ],
         ],
 
