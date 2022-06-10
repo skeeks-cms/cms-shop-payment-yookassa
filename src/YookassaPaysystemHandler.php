@@ -226,6 +226,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
         \Yii::info(print_r($payment, true), self::class);
 
         if (!$payment->id) {
+            \Yii::error('Yandex kassa payment id not found', self::class);
             throw new Exception('Yandex kassa payment id not found');
         }
 
@@ -241,6 +242,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
         ];
 
         if (!$model->save()) {
+            \Yii::error("Не удалось сохранить платеж: ".print_r($model->errors, true), self::class);
             throw new Exception("Не удалось сохранить платеж: ".print_r($model->errors, true));
         }
 

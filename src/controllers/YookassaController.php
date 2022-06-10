@@ -59,7 +59,8 @@ class YookassaController extends Controller
         \Yii::info("Оплата: ".print_r($shopBill->id, true), self::class);
         
         if (!$shopBill) {
-            throw new Exception("Не найден платеж на сайте");
+            \Yii::error("Не найден счет на сайте " . $paymentId, self::class);
+            throw new Exception("Не найден счет на сайте " . $paymentId);
         }
 
         /*
@@ -112,7 +113,7 @@ class YookassaController extends Controller
                 $shopPayment->amount = $shopBill->amount;
                 $shopPayment->currency_code = $shopBill->currency_code;
                 $shopPayment->shop_pay_system_id = $shopBill->shop_pay_system_id;
-                $shopPayment->shop_buyer_id = $shopBill->shop_buyer_id;
+                $shopPayment->cms_user_id = $shopBill->cms_user_id;
                 $shopPayment->shop_order_id = $shopBill->shop_order_id;
                 $shopPayment->external_id = $shopBill->external_id;
                 $shopPayment->external_data = $shopBill->external_data;
