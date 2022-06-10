@@ -120,15 +120,21 @@ class YookassaPaysystemHandler extends PaysystemHandler
          * Для чеков нужно указывать информацию о товарах
          * https://yookassa.ru/developers/api?lang=php#create_payment
          */
-        $contact_email = $shopOrder->contact_email;
+        $contact_phone = trim($shopOrder->contact_phone);
+        $contact_email = trim($shopOrder->contact_email);
+
         $contact_name = $shopOrder->contact_first_name . " " . $shopOrder->contact_last_name;
         $receipt = [];
         if ($yooKassa->is_receipt) {
-            if (trim($contact_email)) {
-                $receipt['customer'] = [
-                    'email'     => trim($contact_email),
-                    'full_name' => trim($contact_name),
-                ];
+            $receipt['customer'] = [
+                'full_name' => trim($contact_name),
+            ];
+
+            if ($contact_email) {
+                $receipt['customer']['email'] = $contact_email;
+            }
+            if ($contact_phone) {
+                $receipt['customer']['phone'] = $contact_phone;
             }
 
             foreach ($shopOrder->shopOrderItems as $shopOrderItem) {
