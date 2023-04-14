@@ -15,6 +15,7 @@ use skeeks\cms\shop\paysystem\PaysystemHandler;
 use skeeks\yii2\form\fields\BoolField;
 use skeeks\yii2\form\fields\FieldSet;
 use skeeks\yii2\form\fields\NumberField;
+use skeeks\yii2\form\fields\SelectField;
 use yii\base\Exception;
 use yii\helpers\ArrayHelper;
 use YooKassa\Client;
@@ -33,6 +34,11 @@ class YookassaPaysystemHandler extends PaysystemHandler
      * @var string
      */
     public $secret_key = '';
+
+    /**
+     * @var string
+     */
+    public $tax_system_code = '';
 
     /**
      * @var bool Отправлять данные по чекам?
@@ -57,6 +63,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
             [['shop_id'], 'integer'],
             [['secret_key'], 'required'],
             [['secret_key'], 'string'],
+            [['tax_system_code'], 'string'],
             [['is_receipt'], 'boolean'],
         ]);
     }
@@ -66,6 +73,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
         return ArrayHelper::merge(parent::attributeLabels(), [
             'shop_id'    => "ID магазина",
             'secret_key' => "Секретный ключ",
+            'tax_system_code' => "Система налогообложения магазина",
             'is_receipt' => "Отправлять данные для формирования чеков?",
         ]);
     }
@@ -75,6 +83,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
         return ArrayHelper::merge(parent::attributeHints(), [
             'shop_id'    => "shop_id",
             'secret_key' => "secret_key",
+            'tax_system_code' => "Используется при формировании чека",
             'is_receipt' => "Необходимо передавать, если вы отправляете данные для формирования чеков по одному из сценариев: Платеж и чек одновременно или Сначала чек, потом платеж.",
         ]);
     }
@@ -97,6 +106,18 @@ class YookassaPaysystemHandler extends PaysystemHandler
                     'is_receipt' => [
                         'class'     => BoolField::class,
                         'allowNull' => false,
+                    ],
+                    'tax_system_code' => [
+                        'class'     => SelectField::class,
+                        'items' => [
+                            '' => "Не выбрана... берется из настроек магазина",
+                            '1' => "Общая система налогообложения",
+                            '2' => "Упрощенная (УСН, доходы)",
+                            '3' => "Упрощенная (УСН, доходы минус расходы)",
+                            '4' => "Единый налог на вмененный доход (ЕНВД)",
+                            '5' => "Единый сельскохозяйственный налог (ЕСН)",
+                            '6' => "Патентная система налогообложения",
+                        ],
                     ],
                 ],
             ],
@@ -126,6 +147,10 @@ class YookassaPaysystemHandler extends PaysystemHandler
         $contact_name = $shopOrder->contact_first_name . " " . $shopOrder->contact_last_name;
         $receipt = [];
         if ($yooKassa->is_receipt) {
+            if ($this->tax_system_code) {
+                $receipt['tax_system_code'] = (int) $this->tax_system_code;
+            }
+
             $receipt['customer'] = [
                 'full_name' => trim($contact_name),
             ];
@@ -143,6 +168,8 @@ class YookassaPaysystemHandler extends PaysystemHandler
                 $itemData['description'] = StringHelper::substr($shopOrderItem->name, 0, 128);
                 $itemData['quantity'] = (float)$shopOrderItem->quantity;
                 $itemData['vat_code'] = 1; //todo: доработать этот момент
+                $itemData['payment_mode'] = "full_payment"; //todo: доработать этот момент
+                $itemData['payment_subject'] = "commodity"; //todo: доработать этот момент
                 $itemData['amount'] = [
                     'value'    => $shopOrderItem->money->amount,
                     'currency' => 'RUB',
