@@ -186,6 +186,8 @@ class YookassaPaysystemHandler extends PaysystemHandler
                 $itemData['description'] = StringHelper::substr($shopOrder->shopDelivery->name, 0, 128);
                 $itemData['quantity'] = 1;
                 $itemData['vat_code'] = 1; //todo: доработать этот момент
+                $itemData['payment_mode'] = "full_payment"; //todo: доработать этот момент
+                $itemData['payment_subject'] = "service"; //todo: доработать этот момент
                 $itemData['amount'] = [
                     'value'    => $shopOrder->moneyDelivery->amount,
                     'currency' => 'RUB',
