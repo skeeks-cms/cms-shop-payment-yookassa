@@ -56,12 +56,14 @@ class YookassaController extends Controller
          * @var ShopBill $shopBill
          */
         $shopBill = ShopBill::find()->andWhere(['external_id' => $paymentId])->one();
-        \Yii::info("Оплата: ".print_r($shopBill->id, true), self::class);
-        
+        \Yii::info("Оплата: " . $paymentId, self::class);
+
         if (!$shopBill) {
             \Yii::error("Не найден счет на сайте " . $paymentId, self::class);
             throw new Exception("Не найден счет на сайте " . $paymentId);
         }
+
+        \Yii::info("Оплата: ".print_r($shopBill->id, true), self::class);
 
         /*
          * @var $yooKassa \skeeks\cms\shop\paySystems\YandexKassaPaySystem
