@@ -46,6 +46,11 @@ class YookassaPaysystemHandler extends PaysystemHandler
     public $is_receipt = false;
 
     /**
+     * @var string Признак способа расчета
+     */
+    public $payment_mode = "full_payment";
+
+    /**
      * @return array
      */
     static public function descriptorConfig()
@@ -65,6 +70,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
             [['secret_key'], 'string'],
             [['tax_system_code'], 'string'],
             [['is_receipt'], 'boolean'],
+            [['payment_mode'], 'string'],
         ]);
     }
 
@@ -74,6 +80,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
             'shop_id'    => "ID магазина",
             'secret_key' => "Секретный ключ",
             'tax_system_code' => "Система налогообложения магазина",
+            'payment_mode' => "Признак способа расчета",
             'is_receipt' => "Отправлять данные для формирования чеков?",
         ]);
     }
@@ -106,6 +113,13 @@ class YookassaPaysystemHandler extends PaysystemHandler
                     'is_receipt' => [
                         'class'     => BoolField::class,
                         'allowNull' => false,
+                    ],
+                    'payment_mode' => [
+                        'class'     => SelectField::class,
+                        'items' => [
+                            'full_payment' => "	Полный расчет",
+                            'full_prepayment' => "Полная предоплата",
+                        ],
                     ],
                     'tax_system_code' => [
                         'class'     => SelectField::class,
@@ -168,7 +182,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
                 $itemData['description'] = StringHelper::substr($shopOrderItem->name, 0, 128);
                 $itemData['quantity'] = (float)$shopOrderItem->quantity;
                 $itemData['vat_code'] = 1; //todo: доработать этот момент
-                $itemData['payment_mode'] = "full_payment"; //todo: доработать этот момент
+                $itemData['payment_mode'] = $this->payment_mode; //todo: доработать этот момент
                 $itemData['payment_subject'] = "commodity"; //todo: доработать этот момент
                 $itemData['amount'] = [
                     'value'    => $shopOrderItem->money->amount,
@@ -186,7 +200,7 @@ class YookassaPaysystemHandler extends PaysystemHandler
                 $itemData['description'] = StringHelper::substr($shopOrder->shopDelivery->name, 0, 128);
                 $itemData['quantity'] = 1;
                 $itemData['vat_code'] = 1; //todo: доработать этот момент
-                $itemData['payment_mode'] = "full_payment"; //todo: доработать этот момент
+                $itemData['payment_mode'] = $this->payment_mode; //todo: доработать этот момент
                 $itemData['payment_subject'] = "service"; //todo: доработать этот момент
                 $itemData['amount'] = [
                     'value'    => $shopOrder->moneyDelivery->amount,
